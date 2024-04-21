@@ -1,0 +1,72 @@
+---
+import merge from 'lodash.merge';
+import { AstroSeo } from '@astrolib/seo';
+
+const canonical = Astro.url.pathname.replace(/\/$/, '');
+const url = Astro.url.toString();
+
+const {
+  title,
+  ignoreTitleTemplate = false,
+  robots = {},
+  description,
+  openGraph = {},
+  twitter = {},
+} = Astro.props;
+
+const seoProps = merge(
+  // defaults
+  {
+    title: '',
+    titleTemplate: '%s',
+    canonical,
+    noindex: true,
+    nofollow: true,
+    description: undefined,
+    openGraph: {
+      url,
+      site_name: 'Example',
+      images: [],
+      locale: 'en',
+      type: 'website',
+    },
+    twitter: {
+      cardType: openGraph?.images?.length ? 'summary_large_image' : 'summary',
+    },
+  },
+
+  // from config (here for now)
+  {
+    title: 'Eths.ID',
+    titleTemplate: '%s',
+    canonical,
+    noindex: true,
+    nofollow: true,
+    description: 'The safe and modern Ethereum Web3 wallet, aware of Ethscriptions',
+    openGraph: {
+      url: canonical,
+      site_name: 'Eths.ID',
+      images: [],
+      locale: 'en',
+      type: 'website',
+    },
+    twitter: {
+      cardType: openGraph?.images?.length ? 'summary_large_image' : 'summary',
+    },
+  },
+
+  // overriden from component props
+  {
+    title: title,
+    titleTemplate: ignoreTitleTemplate ? '%s' : undefined,
+    canonical: canonical,
+    noindex: typeof robots?.index !== 'undefined' ? !robots.index : undefined,
+    nofollow: typeof robots?.follow !== 'undefined' ? !robots.follow : undefined,
+    description: description,
+    openGraph: { url: canonical, ...openGraph },
+    twitter: twitter,
+  },
+);
+---
+
+<AstroSeo {...seoProps} />

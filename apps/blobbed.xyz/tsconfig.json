@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "preserveSymlinks": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      // "~db": ["./src/db/index.ts"],
+    },
+  },
+}

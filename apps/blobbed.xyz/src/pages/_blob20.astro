@@ -1,0 +1,395 @@
+---
+import 'dotenv/config';
+import { stringToHex } from 'viem';
+import { generatePrivateKey, privateKeyToAddress } from 'viem/accounts';
+
+const env = import.meta.env || process.env;
+const url = new URL(Astro.url);
+// let CREATOR_PRIVATE_KEY = null;
+
+async function createBlob(file, optimize = false, gzip = false) {
+        const form = new FormData();
+        form.append('optimize', String(optimize));
+        form.append('gzip', String(gzip));
+        form.append('files', file);
+
+        let item = null;
+        try {
+          const results = await fetch(url.origin + `/api/create-blobs`, {
+            method: 'POST',
+            body: form,
+          }).then((x) => x.json());
+
+          item = results[0];
+        } catch (e) {
+          return null;
+  }
+
+  return item;
+}
+
+async function inscribeBlob(item, initialOwnerAddress, creatorPrivateKey, options: any) {
+  const opts = { ...options };
+  let { maxFeePerGas, maxFeePerBlobGas, maxPriorityFeePerGas } = opts;
+
+  maxFeePerBlobGas = Number(maxFeePerBlobGas || 5);
+
+  let resp = null;
+
+  if (!item) {
+    return null;
+  }
+
+  try {
+    resp = await fetch(url.origin + `/api/inscribe-blob`, {
+      method: 'POST',
+      body: JSON.stringify({
+        initialOwnerAddress,
+        blobs: item.blobs,
+        maxFeePerGas,
+        maxFeePerBlobGas: maxFeePerBlobGas || 20,
+        maxPriorityFeePerGas,
+        chainId: 1,
+        customCalldataUri: stringToHex('data:;rule=esip6,isblob-blobbed-files'),
+        rpcUrl: env.RPC_URL,
+        creatorPrivateKey,
+      }),
+      headers: { 'content-type': 'application/json' },
+    }).then((x) => x.json());
+  } catch (e) {
+    // @ts-ignore next
+    console.log('some failure:', e?.message.slice(0, 300));
+    return null;
+  }
+
+  return resp;
+}
+
+function tokenDeployOp({ ticker, supply, limit, decimals, mints_per_address }) {
+  return new File(
+    [
+      new TextEncoder().encode(
+        JSON.stringify({
+          protocol: 'blob20',
+          token: {
+            operation: 'deploy',
+            ticker,
+            supply,
+            limit,
+            decimals,
+            mints_per_address,
+          },
+        }),
+      ),
+    ],
+    'some-blob-token-deploy.json',
+    { type: 'application/json' },
+  );
+}
+
+function tokenMintOp({ ticker, amount }) {
+  return new File(
+    [
+      new TextEncoder().encode(
+        JSON.stringify({
+          protocol: 'blob20',
+          token: {
+            operation: 'mint',
+            ticker,
+            amount,
+          },
+        }),
+      ),
+    ],
+    'some-blob-token-mint.json',
+    { type: 'application/json' },
+  );
+}
+
+function tokenTransferOp({ ticker, transfers }: { ticker: string; transfers?: any[] }) {
+  return new File(
+    [
+      new TextEncoder().encode(
+        JSON.stringify({
+          protocol: 'blob20',
+          token: {
+            operation: 'transfer',
+            ticker,
+            transfers: transfers || [
+              { to: '0x0123...4444', amount: 50_444 },
+              { to: '0x45b1...a1e2', amount: 11_444 },
+              { to: '0x0531...4fc3', amount: 0.543_345 },
+            ],
+          },
+        }),
+      ),
+    ],
+    'some-blob-token-transfer.json',
+    { type: 'application/json' },
+  );
+}
+
+function reducer(acc: any, [k, v]) {
+  if (k === 'limit' || k === 'supply' || k === 'decimals' || k === 'amount') {
+    acc[k] = Number(v);
+  } else if (k === 'ticker') {
+    acc[k] = String(v)
+      .toUpperCase()
+      .replaceAll(/[\s\W_]*/gi, '');
+  } else {
+    acc[k] = v;
+  }
+
+  return acc;
+}
+
+if (Astro.request.method.toUpperCase() === 'POST') {
+  const form = await Astro.request.formData();
+
+  const op = url.searchParams.get('op');
+  if (op === 'privkey') {
+    const privkey = generatePrivateKey();
+    const address = privateKeyToAddress(privkey);
+
+    console.log({ privkey, address });
+
+    return Astro.redirect(url.pathname + '?privkey=' + privkey + '&address=' + address);
+  } else if (op === 'deploy') {
+    const data = [...form.entries()].reduce(reducer, {});
+    const file = tokenDeployOp(data);
+
+    if (!data.ticker) {
+      return Astro.redirect(url.toString() + '&error=unable-to-ethscribe');
+    }
+
+    console.log(file, data);
+
+    const item = await createBlob(file);
+    const res = (await inscribeBlob(
+      item,
+      data.receiver || url.searchParams.get('address'),
+      data.privkey || url.searchParams.get('privkey'),
+      {
+        maxFeePerGas: data.maxFeePerGas || url.searchParams.get('maxFeePerGas'),
+        maxFeePerBlobGas: data.maxFeePerBlobGas || url.searchParams.get('maxFeePerBlobGas'),
+        maxPriorityFeePerGas:
+          data.maxPriorityFeePerGas || url.searchParams.get('maxPriorityFeePerGas'),
+      },
+    )) as any;
+
+    console.log(res);
+
+    // @ts-ignore duh
+    if (res && res.blobTxHash) {
+      console.log('success:', res.blobTxHash);
+      return Astro.redirect(url.toString() + '&blobTxHash=' + res.blobTxHash);
+    }
+
+    return Astro.redirect(url.toString() + '&error=unable-to-ethscribe');
+  } else if (op === 'mint') {
+    const data = [...form.entries()].reduce(reducer, {});
+    const file = tokenMintOp(data);
+
+    if (!data.ticker) {
+      return Astro.redirect(url.toString() + '&error=unable-to-ethscribe');
+    }
+    console.log(file, data);
+
+    const item = await createBlob(file);
+    const res = (await inscribeBlob(
+      item,
+      data.receiver || url.searchParams.get('address'),
+      data.privkey || url.searchParams.get('privkey'),
+      {
+        maxFeePerGas: data.maxFeePerGas || url.searchParams.get('maxFeePerGas'),
+        maxFeePerBlobGas: data.maxFeePerBlobGas || url.searchParams.get('maxFeePerBlobGas'),
+        maxPriorityFeePerGas:
+          data.maxPriorityFeePerGas || url.searchParams.get('maxPriorityFeePerGas'),
+      },
+    )) as any;
+
+    // @ts-ignore duh
+    if (res && res.blobTxHash) {
+      console.log('success:', res.blobTxHash);
+      return Astro.redirect(url.toString() + '&blobTxHash=' + res.blobTxHash);
+    }
+
+    return Astro.redirect(url.toString() + '&error=unable-to-ethscribe');
+  } else if (op === 'transfer') {
+    const data = [...form.entries()].reduce(reducer, {});
+
+    if (!data.ticker) {
+      return Astro.redirect(url.toString() + '&error=unable-to-ethscribe');
+    }
+
+    if (data.to_address && data.to_address.startsWith('0x') && data.to_address.length === 42) {
+      data.transfers = [{ to: data.to_address.toUpperCase(), amount: data.amount }];
+      const file = tokenTransferOp(data);
+      console.log(file, data);
+
+      const item = await createBlob(file);
+      const res = (await inscribeBlob(
+        item,
+        data.receiver || url.searchParams.get('address'),
+        data.privkey || url.searchParams.get('privkey'),
+        {
+          maxFeePerGas: data.maxFeePerGas || url.searchParams.get('maxFeePerGas'),
+          maxFeePerBlobGas: data.maxFeePerBlobGas || url.searchParams.get('maxFeePerBlobGas'),
+          maxPriorityFeePerGas:
+            data.maxPriorityFeePerGas || url.searchParams.get('maxPriorityFeePerGas'),
+        },
+      )) as any;
+
+      if (res && res.blobTxHash) {
+        console.log('success:', res.blobTxHash);
+        return Astro.redirect(url.toString() + '&blobTxHash=' + res.blobTxHash);
+      }
+
+      return Astro.redirect(url.toString() + '&error=unable-to-ethscribe');
+    }
+
+    return Astro.redirect(url.toString() + '&error=invalid-receiver-or-another-failure');
+  }
+  //sasa
+  return Astro.redirect(url.toString());
+}
+---
+
+<h1>Paused for updates - use something else or just wait</h1>
+
+<h1>Generate Burner</h1>
+<p>
+  Fund the shown wallet address with 10-20$ to make it able to ethscribe, save your private key for
+  future uses!
+</p>
+<form action="/blob20?op=privkey" method="POST">
+  <button>Generate</button>
+</form>
+
+<div>
+  {
+    url.searchParams.get('privkey') && (
+      <p>
+        <>
+          <strong>Private Key:</strong>
+          <span>{url.searchParams.get('privkey')}</span>
+        </>
+      </p>
+    )
+  }
+  {
+    url.searchParams.get('address') && (
+      <p>
+        <strong>Address:</strong>
+        <span>{url.searchParams.get('address')}</span>
+      </p>
+    )
+  }
+  {
+    url.searchParams.get('blobTxHash') && (
+      <p>
+        <strong>Transaction Hash:</strong>
+        <a href={'https://etherscan.io/tx/' + url.searchParams.get('blobTxHash')} target="_blank">
+          {url.searchParams.get('blobTxHash')}
+        </a>
+      </p>
+    )
+  }
+</div>
+
+<h1>Deploy BLOB-20 token</h1>
+<form action="/blob20?op=deploy" method="POST">
+  <input
+    type="text"
+    class="px-2 py-1.5"
+    name="privkey"
+    placeholder="creator private key"
+    value={url.searchParams.get('privkey')}
+  />
+  <input
+    type="text"
+    class="px-2 py-1.5"
+    name="receiver"
+    value={url.searchParams.get('address')}
+    placeholder="initial owner address"
+  />
+  <input
+    type="number"
+    class="px-2 py-1.5"
+    name="maxFeePerBlobGas"
+    placeholder="blob gas"
+    value="20"
+  />
+  <input type="text" class="px-2 py-1.5" name="ticker" placeholder="WGW" />
+  <input type="number" class="px-2 py-1.5" name="supply" placeholder="supply" value="69000000" />
+  <input type="number" class="px-2 py-1.5" name="limit" placeholder="limit" value="1000" />
+  <input type="number" class="px-2 py-1.5" name="decimals" placeholder="decimals" value="18" />
+  <input
+    type="number"
+    class="px-2 py-1.5"
+    name="mints_per_address"
+    placeholder="mints per address"
+    value="0"
+  />
+  <button>deploy</button>
+</form>
+<h1>Mint</h1>
+<form action="/blob20?op=mint" method="POST">
+  <input
+    type="text"
+    class="px-2 py-1.5"
+    name="privkey"
+    placeholder="creator private key"
+    value={url.searchParams.get('privkey')}
+  />
+  <input
+    type="text"
+    class="px-2 py-1.5"
+    name="receiver"
+    placeholder="initial owner address"
+    value={url.searchParams.get('address')}
+  />
+  <input
+    type="number"
+    class="px-2 py-1.5"
+    name="maxFeePerBlobGas"
+    placeholder="blob gas"
+    value="20"
+  />
+  <input type="text" class="px-2 py-1.5" name="ticker" placeholder="WGW" />
+  <input type="number" class="px-2 py-1.5" name="amount" placeholder="amount" value="1000" />
+  <button>mint</button>
+</form>
+<h1>Transfer (todo)</h1>
+<p>still not tracked</p>
+<p>
+  the 2nd field must the owner (eg, self ethscribe, the owner of the privete key); the 5th is the
+  receiver of the amount of tokens
+</p>
+<form action="/blob20?op=transfer" method="POST">
+  <input
+    type="text"
+    class="px-2 py-1.5"
+    name="privkey"
+    placeholder="creator private key"
+    value={url.searchParams.get('privkey')}
+  />
+  <input
+    type="text"
+    class="px-2 py-1.5"
+    name="receiver"
+    value={url.searchParams.get('address')}
+    placeholder="initial owner address"
+  />
+  <input
+    type="number"
+    class="px-2 py-1.5"
+    name="maxFeePerBlobGas"
+    placeholder="blob gas"
+    value="20"
+  />
+  <input type="text" class="px-2 py-1.5" name="ticker" placeholder="WGW" />
+  <input type="text" class="px-2 py-1.5" name="to_address" placeholder="0x0112...1123" />
+  <input type="text" class="px-2 py-1.5" name="amount" placeholder="120.54" />
+  <button>transfer</button>
+</form>

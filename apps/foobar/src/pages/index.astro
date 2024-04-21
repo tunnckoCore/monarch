@@ -1,0 +1,36 @@
+---
+import { Calendar } from '@/components/ui/calendar';
+import Layout from '@/layouts/Layout.astro';
+import { ModeToggle } from '@/components/ModeToggle';
+import { Auth } from '@/components/Auth';
+
+import { db, type UserSelectType, UserInsertSchema, UserTable, type UserInsertType } from '~db';
+
+await db.delete(UserTable);
+
+let data = { username: 'sasa' };
+
+try {
+  data = UserInsertSchema.parse(data);
+  // await db.insert(UserTable).values(data);
+} catch (e) {
+  console.log({ e });
+}
+
+const users = await db.select().from(UserTable);
+---
+
+<Layout>
+  <ModeToggle client:load />
+  {
+    users.map((x: UserSelectType) => (
+      <>
+        <p data-key={x.id}>
+          {x.id}. {x.createdAt} - {x.username}
+        </p>
+      </>
+    ))
+  }
+  <Auth client:load />
+  <div><Calendar client:load /></div>
+</Layout>

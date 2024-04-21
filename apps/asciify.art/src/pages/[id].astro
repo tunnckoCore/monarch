@@ -1,0 +1,276 @@
+---
+// import Asciify from "../components/Asciify.jsx";
+
+if (Astro.request.method === 'POST') {
+  const formData: FormData = (await Astro.request.formData()) as FormData;
+  const eid = formData.get('eid');
+
+  if (eid) {
+    return Astro.redirect('/' + eid);
+  }
+}
+
+const numberFormat = (num: any) => {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+
+const url = new URL(Astro.request.url);
+
+// const mode = searchParams.get("mode") || "next";
+const { id } = Astro.params;
+
+const hash = id && id.startsWith('0x') ? id : '';
+const num = !hash ? Number(id) : 0;
+
+const prev = num - 1 < 0 ? 0 : num - 1;
+const next = num + 1;
+
+let meta = await fetch('https://api.ethscriptions.com/api/ethscriptions/' + id).then((x) =>
+  x.json(),
+);
+
+if (meta.media_type === 'image' && meta.image_removed_by_request_of_rights_holder) {
+  const resp = await fetch('https://api.ethscriptions.com/api/ethscriptions/' + id).then((x) =>
+    x.json(),
+  );
+  meta = resp.data;
+}
+
+const isNotImage = meta.media_type !== 'image' || meta.mimetype === 'image/svg+xml';
+
+// if (!meta.mimetype.startsWith("image/") || meta.mimetype === "image/svg+xml") {
+//   const newLoc = mode === "next" ? next : prev;
+//   console.log(newLoc);
+//   // return Astro.redirect("/?error=not-an-image");
+//   return Astro.redirect("/" + newLoc + "?ts=" + Date.now());
+// }
+
+const _id = meta.ethscription_number
+  ? '#' + numberFormat(meta.ethscription_number)
+  : meta.transaction_hash;
+
+const ogHref = url.origin + url.pathname;
+const ogName = 'Asciify.Art';
+const ogEths = `Ethscription ${_id}`;
+const ogDescription = `ASCII-fy your Ethscription Image`;
+const ogTitle = `${ogDescription} - ${ogName}`;
+const imgUrl = `${url.origin}/og/${meta.transaction_hash}-${isNotImage ? 0 : 1}.png?ts=${Date.now()}`;
+// const imgUrl = `https://api.wgw.lol/api/ethscriptions/${isNotImage ? 0 : meta.transaction_hash}/data?noscale=1`;
+const ogImage = `https://ogcdn.net/6064b869-74ed-4eb9-b76c-0b701ffe7e6b/v4/asciify.art/${encodeURIComponent(ogEths)}/${encodeURIComponent(imgUrl)}/og.png`;
+
+delete meta.valid_listings;
+delete meta.valid_transfers;
+delete meta.collection_items;
+delete meta.collections;
+
+let charset = JSON.stringify(meta);
+while (charset.length < 18_000) {
+  const curr = charset.length;
+  charset += curr > 1000 ? charset.slice(0, 1000) : charset;
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- HTML Meta Tags -->
+    <title>{ogTitle}</title>
+    <meta name="description" content={ogDescription} />
+
+    <!-- Facebook Meta Tags -->
+    <meta property="og:url" content={ogHref} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={ogName} />
+    <meta property="og:description" content={ogDescription} />
+    <meta property="og:image" content={ogImage} />
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:site" content="@wgw_eth" />
+    <meta name="twitter:creator" content="@wgw_eth" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:domain" content={url.origin} />
+    <meta property="twitter:url" content={ogHref} />
+    <meta name="twitter:title" content={ogName} />
+    <meta name="twitter:description" content={ogDescription} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <style is:global>
+      /* define:vars={{ contentUri: `url("${meta.content_uri}")` }} */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      .asciiart {
+        background-clip: text;
+        background-position: center center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        -webkit-text-fill-color: transparent;
+        text-fill-color: transparent;
+        word-break: break-all;
+        color: #fff;
+        font-family: monospace;
+        font-size: 10px;
+        text-align: justify;
+      }
+
+      .art {
+        width: 750px;
+        height: 750px;
+      }
+
+      /* .asciiart::selection {
+        background: transparent;
+        color: transparent;
+      } */
+    </style>
+  </head>
+  <body class="mx-auto flex max-w-[750px] flex-col items-center justify-center bg-black text-black">
+    <div class="my-5 flex w-full items-center justify-between">
+      <a href={`/${prev}`} class="bg-gray-200 p-2">
+        ← #{numberFormat(prev)}
+      </a>
+      <form method="POST" action={`/${id}`}>
+        <input
+          autofocus
+          type="text"
+          name="eid"
+          id="eid"
+          required
+          min="0"
+          placeholder="Ethscription ID"
+          class="-mr-1 w-40 min-w-0 border bg-gray-900/70 px-2 py-1.5 text-gray-200 outline-none"
+        />
+        <button type="submit" class="border bg-gray-200 px-2 py-1.5"> Go </button>
+      </form>
+      <div
+        class={`cursor-pointer bg-gray-200 p-2 ` + (isNotImage ? 'opacity-50' : '')}
+        id="download-btn"
+      >
+        Download
+      </div>
+      <a href={`/${next}`} class="bg-gray-200 p-2">
+        #{numberFormat(next)} →
+      </a>
+    </div>
+    <div
+      class="m-0 mb-8 flex items-center justify-center overflow-hidden border border-gray-100 p-2"
+    >
+      {
+        isNotImage && (
+          <div class="mt-3.5 flex w-[750px] flex-col items-center justify-center text-gray-100">
+            <h2 class="text-3xl font-bold">Not an image, try another</h2>
+            <div class="my-4 overflow-x-hidden">
+              {Object.entries(meta).map(([key, value]) => {
+                if (meta.mimetype === 'text/html') {
+                  return null;
+                }
+
+                return (
+                  <p>
+                    <strong>{key}:</strong>{' '}
+                    {typeof value === 'number' ? numberFormat(String(value)) : String(value)}
+                  </p>
+                );
+              })}
+            </div>
+          </div>
+        )
+      }
+      {
+        !isNotImage && (
+          <div
+            class="asciiart art"
+            data-eid={meta.transaction_hash}
+            style={`background-image: url("${meta.content_uri}")`}
+          >
+            {charset}
+          </div>
+        )
+      }
+    </div>
+    <!-- <Asciify meta={meta} prev={prev} next={next} client:load /> -->
+    <script type="module" is:inline define:vars={{ isNotImage: isNotImage }}>
+      import domToImageMore from 'https://esm.sh/dom-to-image-more@3.2.0';
+
+      const downloadButton = document.querySelector('#download-btn');
+
+      // const mapping = {
+      //   jpeg: domToImageMore.toJpeg,
+      //   jpg: domToImageMore.toJpeg,
+      //   png: domToImageMore.toPng,
+      // };
+
+      function base64ToUint8Array(base64String) {
+        // base64 sanitizing
+        const base64 = base64urlToBase64(base64String);
+
+        // base64 decoding
+        const rawData = atob(base64);
+
+        // Converting raw data to Uint8Array
+        return Uint8Array.from(rawData, (char) => char.charCodeAt(0));
+      }
+
+      function base64urlToBase64(base64UrlString) {
+        // Replace non-url compatible chars with base64 standard chars
+        const base64 = base64UrlString.replace(/-/g, '+').replace(/_/g, '/');
+
+        // Pad out with standard base64 required padding characters if missing
+        const missingPadding = '='.repeat((4 - (base64.length % 4)) % 4);
+
+        return base64 + missingPadding;
+      }
+
+      function base64toFile(b64, filename) {
+        const url = new URL(window.location.href);
+        const imageType = dataURL.slice(5, dataURL.indexOf(';base64'));
+        const imageDataBase64 = dataURL.slice(dataURL.indexOf(',') + 1);
+
+        const imageUint8 = base64ToUint8Array(imageDataBase64);
+        const imageName = `ethscription-` + url.pathname.replace(/^\//i, '');
+        const file = new File([imageUint8], filename || imageName, { type: imageType });
+
+        return file;
+      }
+
+      downloadButton.addEventListener('click', async () => {
+        if (isNotImage) return;
+
+        const art = document.querySelector('.art');
+
+        const dataURL = await domToImageMore.toPng(art, {
+          width: 750,
+          height: 750,
+          bgcolor: '#000',
+          style: {
+            padding: 0,
+            margin: 0,
+          },
+        });
+
+        // const canvas = await domToImageMore.toCanvas(art, {
+        //   width: 750,
+        //   height: 750,
+        //   bgcolor: "#000",
+        //   style: {
+        //     padding: 0,
+        //     margin: 0,
+        //   },
+        // });
+
+        // document.body.appendChild(canvas);
+
+        // const link = document.createElement("a");
+        // link.href = dataURL;
+        // link.target = "_blank";
+        // link.download = art.dataset.eid + ".png";
+        // link.click();
+      });
+    </script>
+  </body>
+</html>

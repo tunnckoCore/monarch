@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "rvest.vs-code-prettier-eslint",
+    "esbenp.prettier-vscode",
+    "astro-build.astro-vscode",
+    "better-ts-errors.better-ts-errors",
+    "denoland.vscode-deno",
+    "bradlc.vscode-tailwindcs"
+  ]
+}

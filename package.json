@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "name": "calldata-space",
+  "type": "module",
+  "engines": {
+    "node": ">=20.5.0"
+  },
+  "scripts": {
+    "cleanup": "node ./scripts/clean-node-modules.mjs",
+    "format": "bun x prettier '**/*.{js,jsx,ts,tsx,mdx,mjs,cjs,astro}' --write",
+    "lint": "bun x eslint '**/*.{js,jsx,ts,tsx,mdx,mjs,cjs,astro}' --fix --report-unused-disable-directives --format codeframe"
+  },
+  "dependencies": {
+    "eslint-config-tunnckocore": "^4.0.0",
+    "turbo": "^1.12.5"
+  }
+}

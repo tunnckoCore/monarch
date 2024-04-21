@@ -1,0 +1,179 @@
+---
+import 'dotenv/config';
+import { stringToHex } from 'viem';
+import { generatePrivateKey, privateKeyToAddress } from 'viem/accounts';
+
+const env = import.meta.env || process.env;
+const url = new URL(Astro.url);
+// let CREATOR_PRIVATE_KEY = null;
+
+async function createBlob(file, optimize = false, gzip = false) {
+  const form = new FormData();
+  form.append('optimize', String(optimize));
+  form.append('gzip', String(gzip));
+  form.append('files', file);
+
+  let item = null;
+  try {
+    const results = await fetch(url.origin + `/api/create-blobs`, {
+      method: 'POST',
+      body: form,
+    }).then((x) => x.json());
+
+    item = results[0];
+  } catch (e) {
+    return null;
+  }
+
+  return item;
+}
+
+async function inscribeBlob(item, initialOwnerAddress, creatorPrivateKey, options: any) {
+  const opts = { ...options };
+  let { maxFeePerGas, maxFeePerBlobGas, maxPriorityFeePerGas } = opts;
+
+  maxFeePerBlobGas = Number(maxFeePerBlobGas || 5);
+
+  let resp = null;
+
+  if (!item) {
+    return null;
+  }
+
+  try {
+    resp = await fetch(url.origin + `/api/inscribe-blob`, {
+      method: 'POST',
+      body: JSON.stringify({
+        initialOwnerAddress,
+        blobs: item.blobs,
+        maxFeePerGas,
+        maxFeePerBlobGas: maxFeePerBlobGas || 20,
+        maxPriorityFeePerGas,
+        chainId: 1,
+        customCalldataUri: stringToHex('data:;rule=esip6,isblob-blobbed-files'),
+        rpcUrl: env.RPC_URL,
+        creatorPrivateKey,
+      }),
+      headers: { 'content-type': 'application/json' },
+    }).then((x) => x.json());
+  } catch (e) {
+    // @ts-ignore next
+    console.log('some failure:', e?.message.slice(0, 300));
+    return null;
+  }
+
+  return resp;
+}
+
+if (Astro.request.method.toUpperCase() === 'POST') {
+  const form = await Astro.request.formData();
+
+  const op = url.searchParams.get('op');
+  if (op === 'privkey') {
+    const privkey = generatePrivateKey();
+    const address = privateKeyToAddress(privkey);
+
+    console.log({ privkey, address });
+
+    return Astro.redirect(url.pathname + '?privkey=' + privkey + '&address=' + address);
+  } else if (op === 'files') {
+    const data = Object.fromEntries([...form.entries()]);
+
+    console.log(data);
+    // const file = tokenDeployOp(data);
+
+    // console.log(file, data);
+
+    const item = await createBlob(data.files, true, true);
+    const res = (await inscribeBlob(
+      item,
+      data.receiver || url.searchParams.get('address'),
+      data.privkey || url.searchParams.get('privkey'),
+      { maxFeePerBlobGas: data.maxFeePerBlobGas || url.searchParams.get('maxFeePerBlobGas') },
+    )) as any;
+
+    // @ts-ignore duh
+    if (res && res.blobTxHash) {
+      console.log('success:', res.blobTxHash);
+      return Astro.redirect(url.toString() + '&blobTxHash=' + res.blobTxHash);
+    }
+
+    return Astro.redirect(url.toString() + '&error=unable-to-ethscribe');
+  }
+
+  //sasa
+  return Astro.redirect(url.toString());
+}
+---
+
+<h1>Paused for updates - use something else or just wait</h1>
+
+<!--
+
+<h1>Generate Burner</h1>
+<p>
+  Fund the shown wallet address with 10-20$ to make it able to ethscribe, save your private key for
+  future uses!
+</p>
+<form action="/files?op=privkey" method="POST">
+  <button>Generate</button>
+</form>
+
+<div>
+  {
+    url.searchParams.get('privkey') && (
+      <p>
+        <>
+          <strong>Private Key:</strong>
+          <span>{url.searchParams.get('privkey')}</span>
+        </>
+      </p>
+    )
+  }
+  {
+    url.searchParams.get('address') && (
+      <p>
+        <strong>Address:</strong>
+        <span>{url.searchParams.get('address')}</span>
+      </p>
+    )
+  }
+  {
+    url.searchParams.get('blobTxHash') && (
+      <p>
+        <strong>Transaction Hash:</strong>
+        <a href={'https://etherscan.io/tx/' + url.searchParams.get('blobTxHash')} target="_blank">
+          {url.searchParams.get('blobTxHash')}
+        </a>
+      </p>
+    )
+  }
+</div>
+
+<h1>Select files</h1>
+<form action="/files?op=files" method="POST" enctype="multipart/form-data">
+  <input
+    type="text"
+    class="px-2 py-1.5"
+    name="privkey"
+    placeholder="creator private key"
+    value={url.searchParams.get('privkey')}
+  />
+  <input
+    type="text"
+    class="px-2 py-1.5"
+    name="receiver"
+    value={url.searchParams.get('address')}
+    placeholder="initial owner address"
+  />
+  <input
+    type="number"
+    class="px-2 py-1.5"
+    name="maxFeePerBlobGas"
+    placeholder="blob gas"
+    value="20"
+  />
+  <input type="file" class="px-2 py-1.5" name="files" />
+  <button>ethscribe</button>
+</form>
+-->
