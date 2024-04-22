@@ -1,5 +1,6 @@
 ---
 layout: ../layouts/Markdown.astro
+title: Blob-20 Specification Draft
 ---
 
 # BLOB-20 Spec draft
