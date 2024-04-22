@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer';
 import { encode as encodeCborg } from 'cborg';
-import { gzipSync } from 'fflate';
+import { gunzipSync, gzipSync } from 'fflate';
 import imageminWebp from 'imagemin-webp';
 import { loadKZG } from 'kzg-wasm';
 import {
@@ -14,6 +14,7 @@ import {
   parseGwei,
   sha256,
   toBlobs,
+  toBytes as viemToBytes,
   type PrivateKeyAccount,
 } from 'viem';
 import {
@@ -168,6 +169,22 @@ export async function inscribeBlob(options = {}) {
   } catch (e) {
     return { error: { message: 'failed to send blob transaction, try again', status: 500 } };
   }
+}
+
+export function toBytes(x: any) {
+  return x instanceof Uint8Array ? x : viemToBytes(x);
+}
+
+export function tryUngzip(data: any) {
+  const u8data = toBytes(data);
+
+  let decompressedContentU8: Uint8Array | null = null;
+
+  if (u8data && u8data.length > 0 && u8data[0] === 31 && u8data[1] === 139 && u8data[2] === 8) {
+    decompressedContentU8 = gunzipSync(u8data);
+  }
+
+  return decompressedContentU8 || u8data;
 }
 
 export async function createBlobsHandler(formData) {
