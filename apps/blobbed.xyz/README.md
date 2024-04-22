@@ -13,13 +13,15 @@ transfer Blob-20 tokens.
 
 ```
 - GET /api/blobs/decode?hash=:tx_hash or comma separated blob_versioned_hashes
-- POST /api/blobs/create
-- POST /api/blobs/inscribe
+- POST /api/blobs/create - normalize and generate blob data
+- POST /api/blobs/inscribe - send transaction with generated blobs
 
-- POST /api/blob20/deploy
-- POST /api/blob20/mint
-- POST /api/blob20/transfer
+- POST /api/blob20/deploy - deploy a new token
+- POST /api/blob20/mint - mint amount of token
+- POST /api/blob20/transfer - transfer tokens
 
-- GET /api/generate-wallet
-- POST /api/optimize-files
+- GET /api/generate-wallet - generated ones are not written anywhere
+
+// can be used for any ethscriptions, it uses imagemin-webp
+- POST /api/optimize-files - optimize files, using gzip / converting to webp (if image)
 ```
