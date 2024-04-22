@@ -1,9 +1,0 @@
-{
-  "protocol": "blob20",
-  "token": {
-    "ticker": "WGW",
-    "supply": 69000000,
-    "limit": 1000,
-    "decimals": 18
-  }
-}
