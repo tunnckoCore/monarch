@@ -15,7 +15,7 @@ export const GET: APIRoute = async function decodeHashes({ request }) {
 
     if (!hash) {
       // @ts-ignore bruh
-      return Response.json({ error: { message: 'Missing hash' } }, { status: 400 });
+      return Response.json({ error: { message: 'Missing hash', status: 400 } }, { status: 400 });
     }
 
     const isHash = hash.startsWith('0x') && hash.length === 66;
@@ -24,7 +24,12 @@ export const GET: APIRoute = async function decodeHashes({ request }) {
     if (!isHash && !isBlobVersionedHash) {
       // @ts-ignore bruh
       return Response.json(
-        { error: { message: 'Invalid hash: should be transaction hash or blob versioned hash' } },
+        {
+          error: {
+            message: 'Invalid hash: should be transaction hash or blob versioned hash',
+            status: 400,
+          },
+        },
         { status: 400 },
       );
     }
