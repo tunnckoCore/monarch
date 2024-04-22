@@ -1,6 +1,7 @@
 ---
 import '@/styles/globals.css';
 
+import { Toaster } from '@/components/ui/sonner';
 import { ViewTransitions } from 'astro:transitions';
 import Metadata from '@/components/Metadata.astro';
 import { Header } from '@/components/Header';
@@ -57,5 +58,7 @@ const { props } = Astro;
         });
       }
     </script>
+
+    <Toaster />
   </body>
 </html>

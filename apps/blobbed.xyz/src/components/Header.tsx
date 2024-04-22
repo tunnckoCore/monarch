@@ -53,10 +53,10 @@ export function Header({
   const [url, setUrl] = useState<URL>();
 
   useEffect(() => {
-    if (!url && typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
       setUrl(new URL(window.location.href));
     }
-  }, [url]);
+  }, []);
 
   return (
     <div className="flex w-full flex-col">
@@ -67,14 +67,18 @@ export function Header({
             <span className="sr-onlxy">Blobbed.xyz</span>
           </Link>
           <Link
-            href="#/create"
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            href="/create"
+            className={cn('text-muted-foreground hover:text-foreground transition-colors', {
+              'text-foreground font-semibold': url?.pathname === '/create',
+            })}
           >
             Create
           </Link>
           <Link
             href="/blob-20-spec"
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className={cn('text-muted-foreground hover:text-foreground transition-colors', {
+              'text-foreground font-semibold': url?.pathname === '/blob-20-spec',
+            })}
           >
             Specification
           </Link>
@@ -87,16 +91,17 @@ export function Header({
           </Link>
           <Link
             href="/wallet"
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className={cn('text-muted-foreground hover:text-foreground transition-colors', {
+              'text-foregroun font-semiboldd': url?.pathname === '/wallet',
+            })}
           >
             Wallet
           </Link>
           <Link
             href="/api"
-            className={cn(
-              'text-muted-foreground hover:text-foreground transition-colors',
-              active === url?.pathname ? 'text-foreground' : '',
-            )}
+            className={cn('text-muted-foreground hover:text-foreground transition-colors', {
+              'text-foreground font-semibold': url?.pathname === '/api',
+            })}
           >
             API
           </Link>
@@ -115,10 +120,10 @@ export function Header({
                 <span className="sr-oxnly">Blobbed.xyz</span>
               </Link>
               <Link
-                href="#/tokens"
+                href="/tokens"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                Tokens
+                Create
               </Link>
               <Link
                 href="/blob-20-spec"
