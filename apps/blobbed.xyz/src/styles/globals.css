@@ -55,4 +55,19 @@
   body {
     @apply bg-background text-foreground;
   }
+  .prose {
+    max-width: 85ch !important;
+  }
 }
+
+/* .markdown,
+.markdown a,
+.markdown strong,
+.markdown em,
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5 {
+  @apply text-foreground;
+} */

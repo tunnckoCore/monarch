@@ -3,6 +3,7 @@ import '@/styles/globals.css';
 
 import { ViewTransitions } from 'astro:transitions';
 import Metadata from '@/components/Metadata.astro';
+import { Header } from '@/components/Header';
 
 const metadata = {};
 
@@ -25,6 +26,8 @@ const { props } = Astro;
   </head>
 
   <body>
+    <Header client:load />
+
     <slot />
 
     <style is:global>
