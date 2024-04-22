@@ -57,6 +57,12 @@
   }
   .prose {
     max-width: 85ch !important;
+    /* @apply leading-7 !important; */
+  }
+
+  .prose li,
+  .prose li p {
+    @apply m-0 p-0;
   }
 }
 
