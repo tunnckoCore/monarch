@@ -7,7 +7,7 @@ title: Blob-20 Specification Draft
 
 - Author Twitter: [@wgw_eth](https://twitter.com/wgw_eth)
 - Blobscriptions Indexer (not only BLOB-20):
-  [Open Source on GitHub](https://github.com/tunnckoCore/blobscriptions-indexer/)
+  [Open Source on GitHub](https://github.com/tunnckoCore/blobscriptions/)
 - Ethscriptions Discord: https://discord.gg/ethscriptions
 - Ethscriptions Site: https://ethscriptions.com
 - Ethscriptions Marketplace: https://ordex.io
