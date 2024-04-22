@@ -1,5 +1,4 @@
 ---
-import { Header } from '@/components/Header';
 import Layout from '@/layouts/Layout.astro';
 ---
 
@@ -11,5 +10,20 @@ import Layout from '@/layouts/Layout.astro';
         class="text-primary">`src/pages/api/`</a
       > folder.
     </p>
+
+    <code
+      ><pre>
+  - GET /api/blobs/decode?hash=:tx_hash or comma separated blob_versioned_hashes
+  - POST /api/blobs/create - normalize and generate blob data
+  - POST /api/blobs/inscribe - send transaction with generated blobs
+
+  - POST /api/blob20/deploy - deploy a new token
+  - POST /api/blob20/mint - mint amount of token
+  - POST /api/blob20/transfer - transfer tokens
+
+  - GET /api/generate-wallet - generated ones are not written anywhere
+  - POST /api/optimize-files - optimize files, using gzip / converting to webp (if image)
+    </pre></code
+    >
   </main>
 </Layout>
