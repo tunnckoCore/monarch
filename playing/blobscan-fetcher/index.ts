@@ -95,6 +95,7 @@ async function* fetchBlob20txs(logging = false) {
         blob_storage,
         transaction: {
           hash: tx.hash,
+          fee: res.fee.value,
           burnt_fee: res.tx_burnt_fee,
           value: res.value,
           nonce: res.nonce,
@@ -111,6 +112,7 @@ async function* fetchBlob20txs(logging = false) {
           gas_price: res.gas_price,
           blob_gas_price: res.blob_gas_price,
           priority_fee: res.priority_fee,
+          max_priority_fee: res.max_priority_fee,
           base_fee_per_gas: res.base_fee_per_gas,
           max_fee_per_gas: res.max_fee_per_gas,
           max_fee_per_blob_gas: res.max_fee_per_blob_gas,
@@ -190,6 +192,7 @@ const record = {
     gas_price: "69726913521",
     blob_gas_price: "1",
     priority_fee: "213680000000",
+    max_priority_fee_per_gas: "10000000",
     base_fee_per_gas: "69716913521",
     max_fee_per_gas: "72470619036",
     max_fee_per_blob_gas: "5000000000",
@@ -215,21 +218,23 @@ for await (const record of fetchBlob20txs()) {
 // console.log(hexToString('0x646174613a746578742f706c61696e3b6261736536342c697374656374'));
 
 // blocks/by_hash/:block_hash - value, block data
-// blocks/by_number/:block_number - value, link to above
+// blocks/by_number/:block_number - value, link to by_hash (block_hash)
 
 // blobs/by_hash/:blob_hash - value, blob data + blob_storage
-// blobs/by_txhash/:tx_hash - value, link to above
+// blobs/by_commitment/:commitment_hash - value, link to by_hash (blob_hash)
+// blobs/by_txhash/:tx_hash - value, link to by_hash (blob_hash)
 
 // fees/:txhash - value, tx fees data
 
-// records/:txhash - value, full tx data
+// rows/:txhash - value, full tx data
 
-// account/tx/:account/:ticker/:txhash - value, link to records/:txhash
+// account/tx/:account/:ticker/:txhash - value, link to rows/:txhash
 // account/balance/:account/:ticker - value, account balance count
 
 // tokens/info/:ticker - value, deploy data
-// tokens/tx/:ticker/:txhash - value, link to records/:txhash
+// tokens/tx/:ticker/:txhash - value, link to rows/:txhash
 
 // stats/tokens - value, deploys counter, similar to calling all of `tokens/info`, but without pagination needed
 // stats/accounts - value, users counter
+// stats/transactions - value, tx counter
 // stats/transactions - value, tx counter
