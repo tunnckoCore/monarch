@@ -70,7 +70,7 @@ for await (const [record] of page) {
       continue;
     }
   }
-  if (record.blob20.token.amount > token.max_per_mint) {
+  if (record.blob20.token.operation === 'mint' && record.blob20.token.amount > token.max_per_mint) {
     console.log('Amount exceeds max per mint', record);
     continue;
   }
