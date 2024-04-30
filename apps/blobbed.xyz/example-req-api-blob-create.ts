@@ -33,24 +33,21 @@ const API_URL = `http://localhost:4321/api`;
 //   type: 'image/jpeg',
 // });
 
-const resp = await fetch(API_URL + '/blob20/mint', {
-  method: 'POST',
-  body: JSON.stringify({
-    token: {
-      operation: 'mint', // 'deploy',
-      ticker: 'MODCAT',
-      // amount: 1000,
-      // max_supply: 1000000,
-      // max_per_mint_limit: 1000,
-      // decimals: 80,
-    },
-    initialOwnerAddress: RECEIVER,
-    // creatorPrivateKey: CREATOR_PRIV_KEY,
-  }),
-  headers: { 'Content-Type': 'application/json' },
-});
+// const resp = await fetch(API_URL + '/blob20/mint', {
+//   method: 'POST',
+//   body: JSON.stringify({
+//     token: {
+//       operation: 'mint', // 'deploy',
+//       ticker: '... ticker ...',
+//       amount: 1000,
+//     },
+//     initialOwnerAddress: LOGGED_USER_ADDRESS,
+//     creatorPrivateKey: LOGGED_USER_PRIVATE_KEY,
+//   }),
+//   headers: { 'Content-Type': 'application/json' },
+// });
 
-console.log(await resp.json());
+// console.log(await resp.json());
 
 // const blobsData = fromBlobs({ blobs: [getBlobData() as any], to: 'bytes' });
 // const decodedCbor = decode(blobsData);

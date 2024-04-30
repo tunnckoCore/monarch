@@ -1,0 +1,15 @@
+{
+  "blob20": {
+    "token": {
+      "amount": 100,
+      "ticker": "wgw",
+      "operation": "mint"
+    },
+    "protocol": "blob20"
+  },
+  "block_hash": "0xd51fb577f8e6ced4695ea54f672e1b0dc3ef12a8ce375f0d0a431f5e79e2d4da",
+  "from_address": "0x421d49927c72323373b0fe5d89feb92e33136197",
+  "to_address": "0x1fcfbbeae6664a1b36b0fba60817ebaa7aba5775",
+  "transaction_burnt_fee": 913974755737312,
+  "transaction_fee": 935246755737312
+}

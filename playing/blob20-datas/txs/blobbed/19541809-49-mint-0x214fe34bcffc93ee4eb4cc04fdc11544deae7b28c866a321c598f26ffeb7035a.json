@@ -1,0 +1,15 @@
+{
+  "blob20": {
+    "token": {
+      "amount": 10000,
+      "ticker": "blobbed",
+      "operation": "mint"
+    },
+    "protocol": "blob20"
+  },
+  "block_hash": "0x47c9bd897fa9c0278228b04f15621a76d9a9791c18ba673794b94f5624544025",
+  "from_address": "0x459ad652d6c5f86e0de669ce5ee2b3bffc787df4",
+  "to_address": "0x67c1d46dca2d2637d781e858bd38eccdfdf32f9f",
+  "transaction_burnt_fee": 654975658182048,
+  "transaction_fee": 676247658182048
+}

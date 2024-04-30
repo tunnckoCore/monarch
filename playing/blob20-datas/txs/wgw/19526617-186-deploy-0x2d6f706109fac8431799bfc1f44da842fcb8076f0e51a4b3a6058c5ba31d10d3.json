@@ -1,0 +1,17 @@
+{
+  "blob20": {
+    "token": {
+      "limit": 100,
+      "supply": 69000,
+      "ticker": "wgw",
+      "decimals": 50,
+      "operation": "deploy"
+    },
+    "protocol": "blob20"
+  },
+  "block_hash": "0xa496babe4896f7a45f460c0379e61a6b0c2521ba8e5e86e33f47d44ea2081eae",
+  "from_address": "0xa20c07f94a127fd76e61fbea1019cce759225002",
+  "to_address": "0xa20c07f94a127fd76e61fbea1019cce759225002",
+  "transaction_burnt_fee": 938651493940752,
+  "transaction_fee": 960259493940752
+}

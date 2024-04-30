@@ -1,0 +1,16 @@
+{
+  "id": "mig_cogil9o0j6r1cfostme0",
+  "parentID": "mig_cogifuo0j6r1cfostm80",
+  "checksum": "1:668f4821af9af31440d6eb5a4a919739578a442d72673f2e85ddb975b90d1c5e",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "transaction_value",
+          "type": "int"
+        },
+        "table": "blob20_transactions"
+      }
+    }
+  ]
+}

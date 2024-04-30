@@ -1,0 +1,17 @@
+{
+  "blob20": {
+    "token": {
+      "limit": 10000,
+      "supply": 6900000,
+      "ticker": "blobbed",
+      "decimals": 50,
+      "operation": "deploy"
+    },
+    "protocol": "blob20"
+  },
+  "block_hash": "0x4e04b902d83f8ed0fde9984d579c0033bef0e5dceb5900cfdc3ce1ce6b04a6f7",
+  "from_address": "0x90b1c352e0c498358fbf1fc2a71a27e510b9775c",
+  "to_address": "0x3e7a28d96f19b65676f4309531418a03039ee5b5",
+  "transaction_burnt_fee": 1468556688116728,
+  "transaction_fee": 1489924688116728
+}
